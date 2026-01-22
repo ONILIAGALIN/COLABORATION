@@ -24,7 +24,7 @@ class AuthController extends Controller
                 "ok" => false,
                 "message" => "Request didn't pass the validation",
                 "error" => $validator->errors()
-            ]);
+            ],400);
         }
 
         $user_input = $validator->safe()->only(["username","email","password","role_id"]);
@@ -37,41 +37,48 @@ class AuthController extends Controller
         return response()->json([
             "ok" => true,
             "message" => "Registered Succefully",
-            "token" => $token
-        ]);
+            "token" => $token,
+            "data" => $user->load("profile")
+        ],201);
     }
 
     public function login(Request $request){
-        $validator = Validator($request->all(), [
-            "login" => "required|string",
-            "password" => "required|string"
+        $validator = Validator::make($request->all(), [
+            "username" => "required_without:email|string",
+            "email" => "required_without:username|string",
+            "password" => "required|string",
         ]);
 
-        if($validator->fails()) {
+        if($validator->fails()){
             return response()->json([
                 "ok" => false,
-                "message" => "Validation failed",
-                "errors" => $validator->errors()
-            ], 422);
+                "message" => "Request didn't pass the validation",
+                "error" => $validator->errors()
+            ],422);
         }
 
-    $credentials = $validator->validated();
-    $fieldType = filter_var($credentials["login"], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-    $user = User::where($fieldType, $credentials["login"])->first();
-        if (!$user || !Hash::check($credentials["password"], $user->password)) {
+        $credentials = $validator->validated();
+        $fieldType = isset($credentials['email']) ? 'email' : 'username';
+        $login = $credentials[$fieldType] ?? null;
+        $user = User::all()->first(function ($user) use ($fieldType, $login) {
+            return $user->$fieldType === $login;
+        });
+        
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 "ok" => false,
-                "message" => "Invalid Username or Password"
+                "message" => "Please check your Username or Email and Password!"
             ], 401);
         }
 
-        $user->load('profile');
+        $user->profile;
         $user->token = $user->createToken("login_token")->plainTextToken;
 
         return response()->json([
             "ok" => true,
-            "message" => "Login Successful",
+            "message" => "Login Successfully.",
             "data" => $user
-        ]);
+        ], 200);
     }
+
 }

@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('rooms', function (Blueprint $table) {
             $table->id();
-            $table->string('username',100)->unique();
-            $table->string('email')->unique();
-            $table->enum("role_id", ["Admin", "User"])->default("User");
-            $table->string('password');
+            $table->string('name', 100);
+            $table->text('description')->nullable();
+            $table->tinyInteger("type")->comment('1=Studio, 2=Suite, 3=deluxe');
+            $table->decimal('price', 8, 2);
+            $table->string('extension')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('rooms');
     }
 };

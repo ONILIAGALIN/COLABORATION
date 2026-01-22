@@ -5,8 +5,10 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Crypt;
 use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
@@ -19,7 +21,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'username',
         'email',
         'password',
         'role_id'
@@ -46,7 +48,26 @@ class User extends Authenticatable
         ];
     }
 
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => Crypt::encryptString($value),
+            get: fn ($value) => Crypt::decryptString($value),
+        );
+    }
+
+    protected function username(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => Crypt::encryptString($value),
+            get: fn ($value) => Crypt::decryptString($value),
+        );
+    }
+
     public function profile (){
         return $this->hasOne(Profile::class);
+    }
+    public function payments(){
+        return $this->hasMany(Payment::class);
     }
 }
