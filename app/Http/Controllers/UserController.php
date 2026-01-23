@@ -42,16 +42,7 @@ class UserController extends Controller
         ],201);
     }
 
-    public function index (Request $request){
-        $user = $request->user();
-        
-        if (!$user || $user->role_id !== 'Admin') {
-            return response()->json([
-                "ok" => false,
-                "message" => "Unauthorized. Only admins can retrieve user data."
-            ],403);
-        }
-        
+    public function index (){
         return response()->json([
             "ok" => true,
             "message" => "All data form user table has been retrieved.",
@@ -59,16 +50,7 @@ class UserController extends Controller
         ],200);
     }
 
-    public function show (Request $request, User $user){
-        $authUser = $request->user();
-        
-        if (!$authUser || $authUser->role_id !== 'Admin') {
-            return response()->json([
-                "ok" => false,
-                "message" => "Unauthorized. Only admins can retrieve user data."
-            ],403);
-        }
-        
+    public function show (User $user){
         return response()->json ([
             "ok" => true,
             "message" => "User data has been retrieved successfully.",
@@ -78,10 +60,10 @@ class UserController extends Controller
 
     public function update (Request $request, User $user){
         $validator = Validator::make($request->all(), [
-            "username" => "sometimes|nullable|string|min:8|max:64|unique:users,username," . $user->id,
-            "email" => "sometimes|nullable|string|email|unique:users,email," . $user->id,
-            "role_id" => "nullable|in:Admin,User",
-            "password" => "nullable|sometimes|string|min:8|max:255|confirmed",
+            "username" => "sometimes|string|min:8|max:64|unique:users,username," . $user->id,
+            "email" => "sometimes|string|email|unique:users,email," . $user->id,
+            "role_id" => "sometimes|in:Admin,User",
+            "password" => "sometimes|string|min:8|max:255|confirmed",
             "first_name" => "sometimes|string|min:2|max:32",
             "middle_name" => "sometimes|string|min:2|max:32",
             "last_name" => "sometimes|string|min:2|max:32",
